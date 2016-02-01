@@ -9,6 +9,13 @@ class NoteIndex(indexes.SearchIndex, indexes.Indexable):
     pub_date = indexes.DateTimeField(model_attr='pub_date')
     # We add this for autocomplete.
     content_auto = indexes.EdgeNgramField(model_attr='body')
+    suggestions = indexes.FacetCharField()
+
+    def prepare(self, obj):
+        prepared_data = super(NoteIndex, self).prepare(obj)
+        prepared_data['suggestions'] = prepared_data['text']
+        print "prepared_data: ", prepared_data
+        return prepared_data
 
     def get_model(self):
         return Note

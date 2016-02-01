@@ -7,7 +7,7 @@ from django.views import generic
 from django.db.models import Count
 from datetime import date
 from haystack.generic_views import SearchView
-from haystack.query import SearchQuerySet
+from haystack.query import SearchQuerySet, AutoQuery
 
 from braces import views
 from . import models
@@ -18,7 +18,10 @@ tmp = 1
 
 
 def autocomplete(request):
-    sqs = SearchQuerySet().autocomplete(content_auto=request.GET.get('q', ''))
+    sqs = SearchQuerySet().filter(content=AutoQuery(request.GET.get('q', '')))
+    suggestion = sqs.spelling_suggestion()
+    print "Correction: ", suggestion
+    sqs = SearchQuerySet().autocomplete(content_auto=suggestion)
     print "sqs: ", sqs
     suggestions = []
     #suggestions = [result.title for result in sqs]
@@ -37,13 +40,13 @@ def autocomplete(request):
 class MyAutoSearchView(generic.TemplateView):
     template_name = "talks/search_auto.html"
 
+
 class MySearchView(SearchView):
     """My custom search view."""
     template_name = "talks/search.html"
     form_class = forms.DateRangeSearchForm
     model = models.Note
     context_object_name = 'Note'
-
 
     def get_queryset(self):
         queryset = super(MySearchView, self).get_queryset()
@@ -52,12 +55,14 @@ class MySearchView(SearchView):
         print "QuerySet: ", tmp
         return queryset
 
+    # if results.query.backend.include_spelling:
+    # context['suggestion'] = forms.get_suggestion()
+
     def get_context_data(self, *args, **kwargs):
         context = super(MySearchView, self).get_context_data(*args, **kwargs)
         # do something
         print "Context: ", context
         return context
-
 
 
 class RestrictToUserMixin(object):
