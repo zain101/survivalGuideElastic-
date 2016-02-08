@@ -8,6 +8,7 @@ from django.db.models import Count
 from datetime import date
 from haystack.generic_views import SearchView
 from haystack.query import SearchQuerySet, AutoQuery
+from django.template.defaultfilters import slugify
 
 from braces import views
 from . import models
@@ -22,6 +23,9 @@ def autocomplete(request):
     suggestion = sqs.spelling_suggestion()
     print "Correction: ", suggestion
     sqs = SearchQuerySet().autocomplete(content_auto=suggestion)
+    # suggestion = models.Note.objects.get(slug=slugify(suggestion))
+    # print "Slug: ", suggestion
+    # sqs = SearchQuerySet().more_like_this(suggestion)
     print "sqs: ", sqs
     suggestions = []
     #suggestions = [result.title for result in sqs]
